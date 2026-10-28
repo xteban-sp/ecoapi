@@ -1,17 +1,33 @@
 # EcoAPI — Servicio de pesajes en ruta (EcoRecicla)
 
-Backend del Examen Parcial U2 (Versión B). Spring Boot 4 + Kotlin, Spring Security con JWT (HS256, 1 h), JPA, Flyway y H2 (base relacional en memoria).
+Backend del Examen Parcial U2 (Versión B). Spring Boot 4 + Kotlin, Spring Security con JWT (HS256, 1 h), JPA, Flyway y **PostgreSQL 16**.
 
 ## Ejecución (un solo comando)
+
+Requisitos: JDK 21 y Docker Desktop en ejecución.
 
 ```bash
 ./gradlew bootRun
 ```
 
-Queda en `http://localhost:8080/api/v1/`. Desde el emulador Android: `http://10.0.2.2:8080/api/v1/`.
-Cada arranque recrea el esquema y la semilla (Flyway), así la "ruta del día" siempre corresponde a la fecha actual.
+Ese comando, gracias a `spring-boot-docker-compose`:
+1. levanta el contenedor PostgreSQL 16 definido en `compose.yaml` (base `ecorecicla`, usuario `ecorecicla`, puerto 5432);
+2. aplica las migraciones Flyway `V1` a `V4` (esquema, semilla, rol AUDITOR y humedad);
+3. deja el servicio en `http://localhost:8080/api/v1/` (desde el emulador Android: `http://10.0.2.2:8080/api/v1/`).
 
-Requisitos: JDK 21.
+**Modo demostración** (`REINICIAR_DATOS=true`, por defecto): en cada arranque se limpia la base y se vuelve a migrar, así la «ruta del día» de la semilla siempre tiene la fecha actual. Con `REINICIAR_DATOS=false` solo se aplican migraciones pendientes y los datos se conservan.
+
+**Otro servidor PostgreSQL** (sin Docker):
+
+```bash
+DOCKER_COMPOSE=false DB_URL=jdbc:postgresql://localhost:5432/ecorecicla DB_USUARIO=postgres DB_CLAVE=secreto ./gradlew bootRun
+```
+
+Consultar la base del contenedor:
+
+```bash
+docker exec -it ecorecicla-postgres psql -U ecorecicla -d ecorecicla
+```
 
 ## Usuarios de prueba (contraseña `Eco2026*`, guardada con BCrypt)
 
@@ -30,7 +46,8 @@ Semilla: 12 puntos en 3 zonas, 2 rutas (ayer CERRADA → RN-01; hoy ABIERTA con 
 ```
 src/main/kotlin/pe/upeu/ecorecicla/
   config/       SecurityConfig.kt (matriz ruta→privilegio), JwtAuthenticationFilter.kt,
-                JwtService.kt, ManejadorDeErrores.kt (formato de error común)
+                JwtService.kt, ManejadorDeErrores.kt (formato de error común),
+                ReinicioDeDatos.kt (limpia y migra en modo demostración)
   seguridad/    Usuario.kt, Rol.kt, Privilegio.kt, UsuarioRepository.kt, AuthController.kt
   dominio/      Entidades.kt (PuntoAcopio, Ruta, RutaPunto, Pesaje), Excepciones.kt
   repositorio/  Repositorios.kt (Spring Data JPA)
@@ -38,7 +55,8 @@ src/main/kotlin/pe/upeu/ecorecicla/
   web/          Controladores.kt (REST bajo /api/v1)
     dto/        Dtos.kt, Comunes.kt (PaginaResponse, ErrorResponseDto)
   Aplicacion.kt
-src/main/resources/db/migration/  V1__esquema.sql, V2__datos_semilla.sql
+src/main/resources/db/migration/  V1__esquema.sql, V2__datos_semilla.sql, V3__rol_auditor.sql, V4__humedad_estimada.sql
+compose.yaml                      PostgreSQL 16 para desarrollo y demostración
 ```
 
 ## Contrato del API
@@ -119,7 +137,8 @@ SC-A y SC-D solo afectan a la aplicación (repositorio `ecorutas`). Cada solicit
 - Autorización en un único lugar (`SecurityConfig`); reglas que dependen de los datos en `servicio/`; controladores sin lógica.
 - 401 (token ausente/alterado/vencido) y 403 (sin privilegio) se generan en los manejadores de Spring Security con el mismo formato de error.
 - Sin renovación de token: al vencer, el cliente vuelve a iniciar sesión.
-- H2 en memoria para levantar con un comando; el SQL de Flyway es estándar y portable a PostgreSQL.
+- PostgreSQL 16 en Docker, levantado automáticamente por Spring Boot (`compose.yaml`), para que el servicio arranque con un solo comando. La conexión se configura por variables de entorno (`DB_URL`, `DB_USUARIO`, `DB_CLAVE`).
+- El esquema lo gobierna Flyway (`ddl-auto: none`); `ReinicioDeDatos` limpia y migra en modo demostración porque la semilla depende de la fecha.
 
 ## Pruebas manuales
 
