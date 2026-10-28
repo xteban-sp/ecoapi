@@ -101,6 +101,9 @@ class Pesaje(
     @Column(name = "peso_neto", precision = 10, scale = 2)
     var pesoNeto: BigDecimal = BigDecimal.ZERO,
     var observacion: String = "",
+    /** SC-C: porcentaje de humedad estimada (0-100), opcional. */
+    @Column(name = "humedad_estimada", precision = 5, scale = 2)
+    var humedadEstimada: BigDecimal? = null,
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "operario_id")
     var operario: Usuario? = null,

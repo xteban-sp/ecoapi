@@ -27,6 +27,10 @@
     {
       "key": "pesajeId",
       "value": ""
+    },
+    {
+      "key": "tokAuditor",
+      "value": ""
     }
   ],
   "item": [
@@ -785,6 +789,159 @@
               "raw": "{\n  \"motivo\": \"Local cerrado\"\n}"
             },
             "url": "{{baseUrl}}/rutas/2/puntos/5/omision"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. SC-B Rol AUDITOR",
+      "item": [
+        {
+          "name": "Login auditor1 (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set(\"tokAuditor\", pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"auditor1\",\"password\":\"Eco2026*\"}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Auditor lee puntos (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", ()=>pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokAuditor}}"
+              }
+            ],
+            "url": "{{baseUrl}}/puntos"
+          }
+        },
+        {
+          "name": "Auditor intenta registrar (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 403\", ()=>pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokAuditor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"rutaId\":2,\"puntoId\":4,\"material\":\"CARTON\",\"pesoBruto\":10,\"tara\":1}"
+            },
+            "url": "{{baseUrl}}/pesajes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. SC-C Humedad estimada",
+      "item": [
+        {
+          "name": "Registrar con humedad (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 201\", ()=>pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokOperario}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"rutaId\":2,\"puntoId\":4,\"material\":\"CARTON\",\"pesoBruto\":50,\"tara\":3,\"humedadEstimada\":14.5}"
+            },
+            "url": "{{baseUrl}}/pesajes"
+          }
+        },
+        {
+          "name": "Humedad fuera de rango (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 400\", ()=>pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokOperario}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"rutaId\":2,\"puntoId\":4,\"material\":\"CARTON\",\"pesoBruto\":50,\"tara\":3,\"humedadEstimada\":130}"
+            },
+            "url": "{{baseUrl}}/pesajes"
           }
         }
       ]

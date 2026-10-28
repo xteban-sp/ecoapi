@@ -21,6 +21,7 @@ Requisitos: JDK 21.
 | supervisor1 | SUPERVISOR | Anula, corrige todo y cierra la ruta |
 | admin | ADMINISTRADOR | No registra pesajes (403); no tiene ruta (404) |
 | operario2 | OPERARIO | Autor del pesaje 15, sirve para demostrar RN-02 |
+| auditor1 | AUDITOR | Solo lectura (SC-B) |
 
 Semilla: 12 puntos en 3 zonas, 2 rutas (ayer CERRADA → RN-01; hoy ABIERTA con 6 puntos, 3 sin pesar → RN-04), 15 pesajes (2 anulados, 1 de operario2).
 
@@ -64,7 +65,7 @@ Cualquier fallo no controlado → 500 con mensaje genérico.
 
 Registrar pesaje (el cliente **no** envía el neto):
 ```json
-{ "rutaId": 2, "puntoId": 4, "material": "CARTON", "pesoBruto": 120.5, "tara": 8, "observacion": "" }
+{ "rutaId": 2, "puntoId": 4, "material": "CARTON", "pesoBruto": 120.5, "tara": 8, "observacion": "", "humedadEstimada": 12.5 }
 ```
 
 Envoltorio de paginación y formato de error común:
@@ -78,20 +79,24 @@ Envoltorio de paginación y formato de error común:
 
 La asignación rol→privilegio vive en la base (`rol_privilegio`, semilla V2). El JWT transporta `sub`, `uid`, `nombre`, `rol` y `privilegios`; el filtro convierte los privilegios en authorities y `SecurityConfig` exige `hasAuthority(PRIVILEGIO)` por ruta. Ningún controlador compara nombres de rol.
 
-| Privilegio | OPERARIO | SUPERVISOR | ADMIN |
-|---|---|---|---|
-| PUNTO_LEER | Sí | Sí | Sí |
-| PESAJE_LEER | Sí | Sí | Sí |
-| PESAJE_CREAR | Sí | Sí | No |
-| PESAJE_EDITAR | Solo los propios (RN-02) | Todos | No |
-| PESAJE_EDITAR_TODOS | No | Sí | No |
-| PESAJE_ANULAR | No | Sí | No |
-| RUTA_CERRAR | No | Sí | No |
-| PUNTO_GESTIONAR | No | No | Sí |
+| Privilegio | OPERARIO | SUPERVISOR | ADMIN | AUDITOR |
+|---|---|---|---|---|
+| PUNTO_LEER | Sí | Sí | Sí | Sí |
+| PESAJE_LEER | Sí | Sí | Sí | Sí |
+| PESAJE_CREAR | Sí | Sí | No | No |
+| PESAJE_EDITAR | Solo los propios (RN-02) | Todos | No | No |
+| PESAJE_EDITAR_TODOS | No | Sí | No | No |
+| PESAJE_ANULAR | No | Sí | No | No |
+| RUTA_CERRAR | No | Sí | No | No |
+| PUNTO_GESTIONAR | No | No | Sí | No |
 
 `PESAJE_EDITAR_TODOS` modela la columna "Todos" de la matriz: así RN-02 se decide por privilegio y no por nombre de rol.
 
-**Agregar un rol nuevo** (p. ej. AUDITOR): una migración `V3__...sql` que inserte el rol en `rol` y sus filas en `rol_privilegio`. No se toca código.
+**Agregar un rol nuevo** (SC-B, rol AUDITOR): la migración `V3__rol_auditor.sql` inserta el rol en `rol`, sus privilegios de lectura en `rol_privilegio` y el usuario `auditor1`. No se tocó `SecurityConfig`, el filtro JWT ni ningún controlador: todos verifican privilegios, nunca nombres de rol. Resultado: lecturas 200, cualquier escritura 403.
+
+## Humedad estimada (SC-C)
+
+Campo opcional `humedadEstimada` (%) en `PesajeRequest`, `PesajeCorreccionRequest` y `PesajeResponse`. Se valida entre 0 y 100 (400 con detalle en el campo `humedadEstimada`). Migración `V4__humedad_estimada.sql`: agrega la columna con CHECK y actualiza los datos semilla con la humedad típica de cada material.
 
 ## Reglas de negocio (capa servicio/)
 
@@ -99,6 +104,15 @@ La asignación rol→privilegio vive en la base (`rol_privilegio`, semilla V2). 
 - **RN-02** Sin `PESAJE_EDITAR_TODOS`, solo se corrigen pesajes propios y del mismo día → 403.
 - **RN-03** Neto = bruto − tara, calculado en el servicio; si ≤ 0 → 400 con detalle en `tara`.
 - **RN-04** La ruta no se cierra si algún punto no tiene pesaje vigente ni motivo de omisión → 409 con la cantidad faltante.
+
+## Parte II: solicitudes de cambio en el servicio
+
+| Código | Cambio en el servicio | Archivos | Verificación |
+|---|---|---|---|
+| SC-B | Rol AUDITOR con PUNTO_LEER y PESAJE_LEER, usuario `auditor1` | `V3__rol_auditor.sql` (solo datos). Sin cambios en `SecurityConfig`, el filtro JWT ni los controladores | Lecturas 200; crear, corregir, anular, cerrar y gestionar → 403 |
+| SC-C | Campo `humedadEstimada` (%) opcional, validado entre 0 y 100 | `V4__humedad_estimada.sql` (columna + semilla), `Entidades.kt`, `Dtos.kt`, `PesajeService.kt` | 201 con humedad; 130 → 400 con detalle en `humedadEstimada`; corrección 200 |
+
+SC-A y SC-D solo afectan a la aplicación (repositorio `ecorutas`). Cada solicitud se desarrolló en su rama `sc-<letra>-istana` desde `develop` y se incorporó por PR.
 
 ## Decisiones de arquitectura
 
