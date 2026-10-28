@@ -1,4 +1,5 @@
--- Datos semilla del Anexo 10. La base es nueva en cada arranque, asi que los id
+-- Datos semilla del Anexo 10 (PostgreSQL). En modo demostracion la base se limpia en cada
+-- arranque (ReinicioDeDatos), asi que los id
 -- se generan en el orden de insercion (1, 2, 3...) y se usan subconsultas por nombre
 -- donde conviene dejar claro a que fila se refiere.
 
@@ -65,11 +66,11 @@ INSERT INTO punto_acopio (razon_social, direccion, zona, material_habitual) VALU
 -- 2 rutas: la de ayer (CERRADA, demuestra RN-01) y la de hoy (ABIERTA)
 -- ---------------------------------------------------------------------------
 INSERT INTO ruta (fecha, operario_id, supervisor_id, estado, cerrada_en) VALUES
-    (DATEADD(DAY, -1, CURRENT_DATE),
+    (CURRENT_DATE - 1,
      (SELECT id FROM usuario WHERE username = 'operario1'),
      (SELECT id FROM usuario WHERE username = 'supervisor1'),
      'CERRADA',
-     DATEADD(HOUR, 18, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP))),          -- ruta 1
+     (CURRENT_DATE - 1) + INTERVAL '18 hours'),          -- ruta 1
     (CURRENT_DATE,
      (SELECT id FROM usuario WHERE username = 'operario1'),
      (SELECT id FROM usuario WHERE username = 'supervisor1'),
@@ -88,21 +89,21 @@ INSERT INTO ruta_punto (ruta_id, punto_id, secuencia) VALUES
 -- ---------------------------------------------------------------------------
 -- Ayer (ruta 1, cerrada): 9 pesajes, uno anulado
 INSERT INTO pesaje (ruta_id, punto_id, fecha_hora, material, peso_bruto, tara, peso_neto, observacion, operario_id, anulado, motivo_anulacion) VALUES
-    (1, 7,  DATEADD(MINUTE, 480, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'PAPEL',    85.50, 5.50, 80.00, '',                          1, TRUE,  'Balanza sin calibrar'),
-    (1, 7,  DATEADD(MINUTE, 490, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'PAPEL',    84.00, 5.50, 78.50, 'Repesado',                  1, FALSE, NULL),
-    (1, 8,  DATEADD(MINUTE, 530, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'VIDRIO',  120.00, 8.00, 112.00, '',                         1, FALSE, NULL),
-    (1, 8,  DATEADD(MINUTE, 535, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'CARTON',   30.00, 2.00, 28.00, 'Cajas sueltas',            1, FALSE, NULL),
-    (1, 9,  DATEADD(MINUTE, 580, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'PLASTICO', 45.20, 3.20, 42.00, '',                          1, FALSE, NULL),
-    (1, 9,  DATEADD(MINUTE, 585, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'PLASTICO', 22.00, 3.20, 18.80, 'Segundo contenedor',        1, FALSE, NULL),
-    (1, 10, DATEADD(MINUTE, 640, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'PAPEL',    66.00, 4.00, 62.00, '',                          1, FALSE, NULL),
-    (1, 11, DATEADD(MINUTE, 700, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'METAL',   210.00, 15.00, 195.00, 'Chatarra pesada',         1, FALSE, NULL),
-    (1, 12, DATEADD(MINUTE, 760, CAST(DATEADD(DAY, -1, CURRENT_DATE) AS TIMESTAMP)), 'CARTON',   95.00, 6.00, 89.00, '',                          1, FALSE, NULL);
+    (1, 7,  (CURRENT_DATE - 1) + INTERVAL '480 minutes', 'PAPEL',    85.50, 5.50, 80.00, '',                          1, TRUE,  'Balanza sin calibrar'),
+    (1, 7,  (CURRENT_DATE - 1) + INTERVAL '490 minutes', 'PAPEL',    84.00, 5.50, 78.50, 'Repesado',                  1, FALSE, NULL),
+    (1, 8,  (CURRENT_DATE - 1) + INTERVAL '530 minutes', 'VIDRIO',  120.00, 8.00, 112.00, '',                         1, FALSE, NULL),
+    (1, 8,  (CURRENT_DATE - 1) + INTERVAL '535 minutes', 'CARTON',   30.00, 2.00, 28.00, 'Cajas sueltas',            1, FALSE, NULL),
+    (1, 9,  (CURRENT_DATE - 1) + INTERVAL '580 minutes', 'PLASTICO', 45.20, 3.20, 42.00, '',                          1, FALSE, NULL),
+    (1, 9,  (CURRENT_DATE - 1) + INTERVAL '585 minutes', 'PLASTICO', 22.00, 3.20, 18.80, 'Segundo contenedor',        1, FALSE, NULL),
+    (1, 10, (CURRENT_DATE - 1) + INTERVAL '640 minutes', 'PAPEL',    66.00, 4.00, 62.00, '',                          1, FALSE, NULL),
+    (1, 11, (CURRENT_DATE - 1) + INTERVAL '700 minutes', 'METAL',   210.00, 15.00, 195.00, 'Chatarra pesada',         1, FALSE, NULL),
+    (1, 12, (CURRENT_DATE - 1) + INTERVAL '760 minutes', 'CARTON',   95.00, 6.00, 89.00, '',                          1, FALSE, NULL);
 
 -- Hoy (ruta 2, abierta): 6 pesajes en los puntos 1 a 3; uno anulado y uno de operario2 (RN-02)
 INSERT INTO pesaje (ruta_id, punto_id, fecha_hora, material, peso_bruto, tara, peso_neto, observacion, operario_id, anulado, motivo_anulacion) VALUES
-    (2, 1, DATEADD(MINUTE, 420, CAST(CURRENT_DATE AS TIMESTAMP)), 'CARTON',   150.00, 10.00, 140.00, '',                     1, FALSE, NULL),
-    (2, 1, DATEADD(MINUTE, 425, CAST(CURRENT_DATE AS TIMESTAMP)), 'PLASTICO',  18.00,  2.00,  16.00, 'Film de embalaje',     1, FALSE, NULL),
-    (2, 2, DATEADD(MINUTE, 450, CAST(CURRENT_DATE AS TIMESTAMP)), 'PLASTICO',  60.00,  4.00,  56.00, '',                     1, TRUE,  'Material equivocado'),
-    (2, 2, DATEADD(MINUTE, 455, CAST(CURRENT_DATE AS TIMESTAMP)), 'PLASTICO',  58.00,  4.00,  54.00, '',                     1, FALSE, NULL),
-    (2, 2, DATEADD(MINUTE, 460, CAST(CURRENT_DATE AS TIMESTAMP)), 'CARTON',    12.50,  1.50,  11.00, '',                     1, FALSE, NULL),
-    (2, 3, DATEADD(MINUTE, 500, CAST(CURRENT_DATE AS TIMESTAMP)), 'PAPEL',     40.00,  3.00,  37.00, 'Registrado por apoyo', 4, FALSE, NULL);
+    (2, 1, CURRENT_DATE + INTERVAL '420 minutes', 'CARTON',   150.00, 10.00, 140.00, '',                     1, FALSE, NULL),
+    (2, 1, CURRENT_DATE + INTERVAL '425 minutes', 'PLASTICO',  18.00,  2.00,  16.00, 'Film de embalaje',     1, FALSE, NULL),
+    (2, 2, CURRENT_DATE + INTERVAL '450 minutes', 'PLASTICO',  60.00,  4.00,  56.00, '',                     1, TRUE,  'Material equivocado'),
+    (2, 2, CURRENT_DATE + INTERVAL '455 minutes', 'PLASTICO',  58.00,  4.00,  54.00, '',                     1, FALSE, NULL),
+    (2, 2, CURRENT_DATE + INTERVAL '460 minutes', 'CARTON',    12.50,  1.50,  11.00, '',                     1, FALSE, NULL),
+    (2, 3, CURRENT_DATE + INTERVAL '500 minutes', 'PAPEL',     40.00,  3.00,  37.00, 'Registrado por apoyo', 4, FALSE, NULL);
