@@ -5,11 +5,11 @@ spring:
   application:
     name: ecoapi
   datasource:
-    # Base relacional en memoria: cada arranque recrea el esquema y la semilla con Flyway,
-    # de modo que la ruta "del dia" siempre corresponde a la fecha actual.
-    url: jdbc:h2:mem:ecorecicla;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
+    # PostgreSQL. Por defecto, el contenedor de compose.yaml; con otro servidor basta con
+    # definir DB_URL, DB_USUARIO y DB_CLAVE.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ecorecicla}
+    username: ${DB_USUARIO:ecorecicla}
+    password: ${DB_CLAVE:ecorecicla2026}
   jpa:
     hibernate:
       # El esquema lo gobierna Flyway (migraciones versionadas); Hibernate no lo toca.
@@ -17,16 +17,23 @@ spring:
     open-in-view: false
   flyway:
     locations: classpath:db/migration
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    # Necesario para que ReinicioDeDatos pueda limpiar la base en modo demostracion.
+    clean-disabled: false
+  docker:
+    compose:
+      # Al detener el servicio el contenedor se detiene, pero los datos quedan en el volumen.
+      lifecycle-management: start-and-stop
+      # Con DB_URL apuntando a otro servidor no hace falta Docker.
+      enabled: ${DOCKER_COMPOSE:true}
 
 ecorecicla:
   jwt:
     # Secreto HMAC-SHA256 en Base64 (>= 256 bits). En produccion se inyecta por variable de entorno.
     secreto: ${JWT_SECRETO:ZWNvcmVjaWNsYS1lY29hcGktc2VjcmV0by1kZS1maXJtYS1obWFjLTIwMjYtdW5pZGFkMg==}
     vigencia-segundos: 3600
+  # Demostracion: en cada arranque se limpia la base y se vuelve a migrar, asi la semilla
+  # genera la "ruta del dia" con la fecha actual. Poner en false para conservar los datos.
+  reiniciar-datos: ${REINICIAR_DATOS:true}
 
 logging:
   level:
