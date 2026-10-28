@@ -65,7 +65,7 @@ Cualquier fallo no controlado → 500 con mensaje genérico.
 
 Registrar pesaje (el cliente **no** envía el neto):
 ```json
-{ "rutaId": 2, "puntoId": 4, "material": "CARTON", "pesoBruto": 120.5, "tara": 8, "observacion": "" }
+{ "rutaId": 2, "puntoId": 4, "material": "CARTON", "pesoBruto": 120.5, "tara": 8, "observacion": "", "humedadEstimada": 12.5 }
 ```
 
 Envoltorio de paginación y formato de error común:
@@ -93,6 +93,10 @@ La asignación rol→privilegio vive en la base (`rol_privilegio`, semilla V2). 
 `PESAJE_EDITAR_TODOS` modela la columna "Todos" de la matriz: así RN-02 se decide por privilegio y no por nombre de rol.
 
 **Agregar un rol nuevo** (SC-B, rol AUDITOR): la migración `V3__rol_auditor.sql` inserta el rol en `rol`, sus privilegios de lectura en `rol_privilegio` y el usuario `auditor1`. No se tocó `SecurityConfig`, el filtro JWT ni ningún controlador: todos verifican privilegios, nunca nombres de rol. Resultado: lecturas 200, cualquier escritura 403.
+
+## Humedad estimada (SC-C)
+
+Campo opcional `humedadEstimada` (%) en `PesajeRequest`, `PesajeCorreccionRequest` y `PesajeResponse`. Se valida entre 0 y 100 (400 con detalle en el campo `humedadEstimada`). Migración `V4__humedad_estimada.sql`: agrega la columna con CHECK y actualiza los datos semilla con la humedad típica de cada material.
 
 ## Reglas de negocio (capa servicio/)
 

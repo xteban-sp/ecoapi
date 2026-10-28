@@ -878,6 +878,73 @@
           }
         }
       ]
+    },
+    {
+      "name": "7. SC-C Humedad estimada",
+      "item": [
+        {
+          "name": "Registrar con humedad (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 201\", ()=>pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokOperario}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"rutaId\":2,\"puntoId\":4,\"material\":\"CARTON\",\"pesoBruto\":50,\"tara\":3,\"humedadEstimada\":14.5}"
+            },
+            "url": "{{baseUrl}}/pesajes"
+          }
+        },
+        {
+          "name": "Humedad fuera de rango (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 400\", ()=>pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokOperario}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"rutaId\":2,\"puntoId\":4,\"material\":\"CARTON\",\"pesoBruto\":50,\"tara\":3,\"humedadEstimada\":130}"
+            },
+            "url": "{{baseUrl}}/pesajes"
+          }
+        }
+      ]
     }
   ]
 }
