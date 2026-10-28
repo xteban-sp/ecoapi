@@ -105,6 +105,15 @@ Campo opcional `humedadEstimada` (%) en `PesajeRequest`, `PesajeCorreccionReques
 - **RN-03** Neto = bruto − tara, calculado en el servicio; si ≤ 0 → 400 con detalle en `tara`.
 - **RN-04** La ruta no se cierra si algún punto no tiene pesaje vigente ni motivo de omisión → 409 con la cantidad faltante.
 
+## Parte II: solicitudes de cambio en el servicio
+
+| Código | Cambio en el servicio | Archivos | Verificación |
+|---|---|---|---|
+| SC-B | Rol AUDITOR con PUNTO_LEER y PESAJE_LEER, usuario `auditor1` | `V3__rol_auditor.sql` (solo datos). Sin cambios en `SecurityConfig`, el filtro JWT ni los controladores | Lecturas 200; crear, corregir, anular, cerrar y gestionar → 403 |
+| SC-C | Campo `humedadEstimada` (%) opcional, validado entre 0 y 100 | `V4__humedad_estimada.sql` (columna + semilla), `Entidades.kt`, `Dtos.kt`, `PesajeService.kt` | 201 con humedad; 130 → 400 con detalle en `humedadEstimada`; corrección 200 |
+
+SC-A y SC-D solo afectan a la aplicación (repositorio `ecorutas`). Cada solicitud se desarrolló en su rama `sc-<letra>-istana` desde `develop` y se incorporó por PR.
+
 ## Decisiones de arquitectura
 
 - Autorización en un único lugar (`SecurityConfig`); reglas que dependen de los datos en `servicio/`; controladores sin lógica.
