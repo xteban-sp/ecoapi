@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ecoapi
+  datasource:
+    # Base relacional en memoria: cada arranque recrea el esquema y la semilla con Flyway,
+    # de modo que la ruta "del dia" siempre corresponde a la fecha actual.
+    url: jdbc:h2:mem:ecorecicla;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      # El esquema lo gobierna Flyway (migraciones versionadas); Hibernate no lo toca.
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    locations: classpath:db/migration
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+ecorecicla:
+  jwt:
+    # Secreto HMAC-SHA256 en Base64 (>= 256 bits). En produccion se inyecta por variable de entorno.
+    secreto: ${JWT_SECRETO:ZWNvcmVjaWNsYS1lY29hcGktc2VjcmV0by1kZS1maXJtYS1obWFjLTIwMjYtdW5pZGFkMg==}
+    vigencia-segundos: 3600
+
+logging:
+  level:
+    pe.upeu.ecorecicla: INFO
