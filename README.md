@@ -21,6 +21,7 @@ Requisitos: JDK 21.
 | supervisor1 | SUPERVISOR | Anula, corrige todo y cierra la ruta |
 | admin | ADMINISTRADOR | No registra pesajes (403); no tiene ruta (404) |
 | operario2 | OPERARIO | Autor del pesaje 15, sirve para demostrar RN-02 |
+| auditor1 | AUDITOR | Solo lectura (SC-B) |
 
 Semilla: 12 puntos en 3 zonas, 2 rutas (ayer CERRADA → RN-01; hoy ABIERTA con 6 puntos, 3 sin pesar → RN-04), 15 pesajes (2 anulados, 1 de operario2).
 
@@ -78,20 +79,20 @@ Envoltorio de paginación y formato de error común:
 
 La asignación rol→privilegio vive en la base (`rol_privilegio`, semilla V2). El JWT transporta `sub`, `uid`, `nombre`, `rol` y `privilegios`; el filtro convierte los privilegios en authorities y `SecurityConfig` exige `hasAuthority(PRIVILEGIO)` por ruta. Ningún controlador compara nombres de rol.
 
-| Privilegio | OPERARIO | SUPERVISOR | ADMIN |
-|---|---|---|---|
-| PUNTO_LEER | Sí | Sí | Sí |
-| PESAJE_LEER | Sí | Sí | Sí |
-| PESAJE_CREAR | Sí | Sí | No |
-| PESAJE_EDITAR | Solo los propios (RN-02) | Todos | No |
-| PESAJE_EDITAR_TODOS | No | Sí | No |
-| PESAJE_ANULAR | No | Sí | No |
-| RUTA_CERRAR | No | Sí | No |
-| PUNTO_GESTIONAR | No | No | Sí |
+| Privilegio | OPERARIO | SUPERVISOR | ADMIN | AUDITOR |
+|---|---|---|---|---|
+| PUNTO_LEER | Sí | Sí | Sí | Sí |
+| PESAJE_LEER | Sí | Sí | Sí | Sí |
+| PESAJE_CREAR | Sí | Sí | No | No |
+| PESAJE_EDITAR | Solo los propios (RN-02) | Todos | No | No |
+| PESAJE_EDITAR_TODOS | No | Sí | No | No |
+| PESAJE_ANULAR | No | Sí | No | No |
+| RUTA_CERRAR | No | Sí | No | No |
+| PUNTO_GESTIONAR | No | No | Sí | No |
 
 `PESAJE_EDITAR_TODOS` modela la columna "Todos" de la matriz: así RN-02 se decide por privilegio y no por nombre de rol.
 
-**Agregar un rol nuevo** (p. ej. AUDITOR): una migración `V3__...sql` que inserte el rol en `rol` y sus filas en `rol_privilegio`. No se toca código.
+**Agregar un rol nuevo** (SC-B, rol AUDITOR): la migración `V3__rol_auditor.sql` inserta el rol en `rol`, sus privilegios de lectura en `rol_privilegio` y el usuario `auditor1`. No se tocó `SecurityConfig`, el filtro JWT ni ningún controlador: todos verifican privilegios, nunca nombres de rol. Resultado: lecturas 200, cualquier escritura 403.
 
 ## Reglas de negocio (capa servicio/)
 
