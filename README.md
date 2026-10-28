@@ -79,8 +79,8 @@ Envoltorio de paginación y formato de error común:
 
 La asignación rol→privilegio vive en la base (`rol_privilegio`, semilla V2). El JWT transporta `sub`, `uid`, `nombre`, `rol` y `privilegios`; el filtro convierte los privilegios en authorities y `SecurityConfig` exige `hasAuthority(PRIVILEGIO)` por ruta. Ningún controlador compara nombres de rol.
 
-| Privilegio | OPERARIO | SUPERVISOR | ADMIN |
-|---|---|---|---|
+| Privilegio | OPERARIO | SUPERVISOR | ADMIN | AUDITOR |
+|---|---|---|---|---|
 | PUNTO_LEER | Sí | Sí | Sí | Sí |
 | PESAJE_LEER | Sí | Sí | Sí | Sí |
 | PESAJE_CREAR | Sí | Sí | No | No |
