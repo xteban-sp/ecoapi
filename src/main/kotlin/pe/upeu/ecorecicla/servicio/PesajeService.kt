@@ -144,6 +144,8 @@ class PesajeService(
         pesajes.findById(id).orElseThrow { RecursoNoEncontradoException("El pesaje $id no existe") }
 
     private fun kilos(valor: Double): BigDecimal = BigDecimal.valueOf(valor).setScale(2, RoundingMode.HALF_UP)
+
+    private fun porcentaje(valor: Double): BigDecimal = BigDecimal.valueOf(valor).setScale(2, RoundingMode.HALF_UP)
 }
 
 /** Pagina y tamanio acotados: evita pedir 10 000 filas de golpe. */
