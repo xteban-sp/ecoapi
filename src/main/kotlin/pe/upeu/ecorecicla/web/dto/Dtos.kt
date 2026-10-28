@@ -132,7 +132,11 @@ data class PesajeRequest(
     @field:PositiveOrZero(message = "La tara no puede ser negativa")
     val tara: Double?,
     @field:Size(max = 250, message = "Maximo 250 caracteres")
-    val observacion: String? = null
+    val observacion: String? = null,
+    /** SC-C: humedad estimada en %, opcional. */
+    @field:DecimalMin(value = "0.0", message = "La humedad no puede ser negativa")
+    @field:DecimalMax(value = "100.0", message = "La humedad no puede superar el 100 %")
+    val humedadEstimada: Double? = null
 )
 
 /** Correccion: el punto y la ruta de un pesaje no cambian. */
@@ -147,7 +151,11 @@ data class PesajeCorreccionRequest(
     @field:PositiveOrZero(message = "La tara no puede ser negativa")
     val tara: Double?,
     @field:Size(max = 250, message = "Maximo 250 caracteres")
-    val observacion: String? = null
+    val observacion: String? = null,
+    /** SC-C: humedad estimada en %, opcional. */
+    @field:DecimalMin(value = "0.0", message = "La humedad no puede ser negativa")
+    @field:DecimalMax(value = "100.0", message = "La humedad no puede superar el 100 %")
+    val humedadEstimada: Double? = null
 )
 
 data class PesajeResponse(
@@ -160,6 +168,7 @@ data class PesajeResponse(
     val tara: Double,
     val pesoNeto: Double,
     val observacion: String,
+    val humedadEstimada: Double?,
     val operario: String,
     val anulado: Boolean,
     val motivoAnulacion: String?
@@ -175,6 +184,7 @@ fun Pesaje.aRespuesta() = PesajeResponse(
     tara = tara.toDouble(),
     pesoNeto = pesoNeto.toDouble(),
     observacion = observacion,
+    humedadEstimada = humedadEstimada?.toDouble(),
     operario = operario?.username.orEmpty(),
     anulado = anulado,
     motivoAnulacion = motivoAnulacion
