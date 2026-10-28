@@ -36,8 +36,11 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwt")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwt")
 
-    // Base relacional en memoria: el servicio levanta con un solo comando y sin instalar nada
-    runtimeOnly("com.h2database:h2")
+    // PostgreSQL: driver JDBC y soporte de Flyway para su dialecto
+    runtimeOnly("org.postgresql:postgresql")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    // Arranca el contenedor de compose.yaml al hacer bootRun: un solo comando levanta base y servicio
+    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")

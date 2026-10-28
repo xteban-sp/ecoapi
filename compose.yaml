@@ -1,0 +1,20 @@
+# Base de datos PostgreSQL del servicio. Spring Boot (spring-boot-docker-compose) la levanta
+# automaticamente al ejecutar ./gradlew bootRun, asi el backend arranca con un solo comando.
+# Tambien se puede levantar a mano: docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecorecicla-postgres
+    environment:
+      POSTGRES_DB: ecorecicla
+      POSTGRES_USER: ecorecicla
+      POSTGRES_PASSWORD: ecorecicla2026
+      TZ: America/Lima
+      PGTZ: America/Lima
+    ports:
+      - "5432:5432"
+    volumes:
+      - ecorecicla-datos:/var/lib/postgresql/data
+
+volumes:
+  ecorecicla-datos:
